@@ -40,9 +40,9 @@ Route::prefix('invitations')->group(function () {
     Route::get('', [InvitationController::class, 'index'])->middleware('auth:sanctum');
     Route::get('total-per-month', [InvitationController::class, 'getTotalPerMonth'])->middleware('auth:sanctum');
     Route::get('detail/{id}', [InvitationController::class, 'getDetail']);
-    Route::get('{id}', [InvitationController::class, 'show']);
+    Route::get('{id}', [InvitationController::class, 'show'])->middleware('auth:sanctum');
     Route::post('', [InvitationController::class, 'store'])->middleware('auth:sanctum');
-    Route::put('{id}', [InvitationController::class, 'update']);
+    Route::put('{id}', [InvitationController::class, 'update'])->middleware('auth:sanctum');
 });
 
 Route::prefix('brides')->middleware('auth:sanctum')->group(function () {
