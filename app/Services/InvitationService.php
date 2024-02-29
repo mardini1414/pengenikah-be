@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
-use App\Http\Requests\InvitationRequest;
+use App\Http\Requests\InvitationCreateRequest;
+use App\Http\Requests\InvitationUpdateRequest;
+use App\Http\Resources\InvitationDetailResource;
 use App\Http\Resources\InvitationResource;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -62,27 +64,42 @@ class InvitationService
 
     public function getOne(int $id)
     {
-        try {
-            $data = Invitation::with([
-                'song',
-                'bride',
-                'groom',
-                'weddingCeremony',
-                'weddingReception',
-                'alsoInvites',
-                'galleries',
-                'stories'
-            ])->findOrFail($id);
-            return new InvitationResource($data);
-        } catch (ModelNotFoundException $e) {
+        $invitation = Invitation::where('id', $id)->count();
+        if ($invitation < 1) {
             throw new HttpResponseException(response()->json([
                 'errors' => [
-                    'message' => 'invitation not found'
+                    'message' => 'invitation id not found'
                 ]
             ], 404));
         }
+        $data = Invitation::where('id', $id)->first();
+        return new InvitationResource($data);
     }
-    public function create(InvitationRequest $invitationRequest)
+
+    public function getDetail(int $id)
+    {
+        $invitation = Invitation::where('id', $id)->count();
+        if ($invitation < 1) {
+            throw new HttpResponseException(response()->json([
+                'errors' => [
+                    'message' => 'invitation id not found'
+                ]
+            ], 404));
+        }
+        $relations = [
+            'song',
+            'bride',
+            'groom',
+            'weddingCeremony',
+            'weddingReception',
+            'alsoInvites',
+            'galleries',
+            'stories'
+        ];
+        $data = Invitation::with($relations)->where('id', $id)->first();
+        return new InvitationDetailResource($data);
+    }
+    public function create(InvitationCreateRequest $invitationRequest)
     {
 
         DB::transaction(function () use ($invitationRequest) {
@@ -162,5 +179,122 @@ class InvitationService
 
             Gallery::insert($galleries);
         }, 5);
+    }
+
+    public function update(int $id, InvitationUpdateRequest $request)
+    {
+        $invitation = Invitation::where('id', $id)->count();
+        if ($invitation < 1) {
+            throw new HttpResponseException(response()->json([
+                'errors' => [
+                    'message' => 'invitation id not found'
+                ]
+            ], 404));
+        }
+        try {
+            Invitation::where('id', $id)
+                ->update([
+                    'image_hero_path' => $request['heroImage'],
+                    'theme_id' => $request['themeId'],
+                    'song_id' => $request['songId'],
+                ]);
+        } catch (QueryException $ex) {
+            throw new HttpResponseException(response()->json([
+                'errors' => [
+                    'message' => 'theme id or song id not found'
+                ]
+            ], 404));
+        }
+    }
+
+    public function getTotalPerMonth(?int $year)
+    {
+        $data = Invitation::selectRaw('count(*) as total, month(created_at) as month')
+            ->whereRaw('year(created_at) = ?', [$year ?? date('Y')])
+            ->groupByRaw('month(created_at)')
+            ->orderByRaw('month(created_at)')
+            ->get();
+        return $this->mappingTotatPerMonth($data);
+
+    }
+
+    private function mappingTotatPerMonth(object $data)
+    {
+        $dataPerMonth = [
+            [
+                'key' => 1,
+                'total' => 0,
+                'month' => 'January'
+            ],
+            [
+                'key' => 2,
+                'total' => 0,
+                'month' => 'February'
+            ],
+            [
+                'key' => 3,
+                'total' => 0,
+                'month' => 'March'
+            ],
+            [
+                'key' => 4,
+                'total' => 0,
+                'month' => 'April'
+            ],
+            [
+                'key' => 5,
+                'total' => 0,
+                'month' => 'May'
+            ],
+            [
+                'key' => 6,
+                'total' => 0,
+                'month' => 'Juny'
+            ],
+            [
+                'key' => 7,
+                'total' => 0,
+                'month' => 'July'
+            ],
+            [
+                'key' => 8,
+                'total' => 0,
+                'month' => 'August'
+            ],
+            [
+                'key' => 9,
+                'total' => 0,
+                'month' => 'September'
+            ],
+            [
+                'key' => 10,
+                'total' => 0,
+                'month' => 'October'
+            ],
+            [
+                'key' => 11,
+                'total' => 0,
+                'month' => 'November'
+            ],
+            [
+                'key' => 12,
+                'total' => 0,
+                'month' => 'December'
+            ],
+        ];
+
+        $result = array_map(function ($v) use ($data) {
+            foreach ($data as $d) {
+                if ($v['key'] === $d->month) {
+                    $v['total'] = $d->total;
+                }
+            }
+            return [
+                'total' => $v['total'],
+                'month' => $v['month']
+            ];
+        }, $dataPerMonth);
+
+        return $result;
     }
 }

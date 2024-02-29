@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class InvitationResource extends JsonResource
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,9 +16,8 @@ class InvitationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'image_hero_url' => url('/') . $this->image_hero_path,
-            'slug' => $this->slug,
-            'theme' => $this->theme_id,
+            'name' => $this->name,
+            'created_at' => $this->created_at
         ];
     }
 }
