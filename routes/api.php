@@ -1,17 +1,18 @@
 <?php
 
-use App\Http\Controllers\AlsoInviteController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BrideController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\GalleryController;
-use App\Http\Controllers\GroomController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\StoryController;
-use App\Http\Controllers\SummaryController;
-use App\Http\Controllers\WeddingCeremonyController;
-use App\Http\Controllers\WeddingReceptionController;
+use App\Http\Controllers\Invitation\AlsoInviteController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Invitation\BrideController;
+use App\Http\Controllers\Invitation\CommentController;
+use App\Http\Controllers\File\FileController;
+use App\Http\Controllers\Invitation\GalleryController;
+use App\Http\Controllers\Invitation\GroomController;
+use App\Http\Controllers\Invitation\InvitationController;
+use App\Http\Controllers\Invitation\StoryController;
+use App\Http\Controllers\Summary\SummaryController;
+use App\Http\Controllers\Invitation\WeddingCeremonyController;
+use App\Http\Controllers\Invitation\WeddingReceptionController;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,7 +30,10 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::delete('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::post('users', [AuthController::class, 'getUser'])->middleware('auth:sanctum');
+});
+
+Route::prefix('users')->middleware('auth:sanctum')->group(function () {
+    Route::get('authenticated', [UserController::class, 'getAuthenticated']);
 });
 
 Route::prefix('summaries')->middleware('auth:sanctum')->group(function () {
@@ -39,7 +43,7 @@ Route::prefix('summaries')->middleware('auth:sanctum')->group(function () {
 Route::prefix('invitations')->group(function () {
     Route::get('', [InvitationController::class, 'index'])->middleware('auth:sanctum');
     Route::get('total-per-month', [InvitationController::class, 'getTotalPerMonth'])->middleware('auth:sanctum');
-    Route::get('detail/{id}', [InvitationController::class, 'getDetail']);
+    Route::get('detail/{slug}', [InvitationController::class, 'getByslug']);
     Route::get('{id}', [InvitationController::class, 'show'])->middleware('auth:sanctum');
     Route::post('', [InvitationController::class, 'store'])->middleware('auth:sanctum');
     Route::put('{id}', [InvitationController::class, 'update'])->middleware('auth:sanctum');
