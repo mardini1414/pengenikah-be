@@ -28,7 +28,7 @@ class InvitationService
     {
         $name = $request->name;
         $startDate = $request->start_date ?? '1970-01-01';
-        $endDate = $request->end_date ?? Carbon::now()->toDate();
+        $endDate = $request->end_date ?? Carbon::now()->toDate()->format('Y-m-d');
         $result = DB::table('invitations')->select(
             [
                 'invitations.id as id',
