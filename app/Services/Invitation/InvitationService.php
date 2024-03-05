@@ -31,6 +31,7 @@ class InvitationService
         $endDate = $request->end_date ?? Carbon::now()->toDate();
         $result = DB::table('invitations')->select(
             [
+                'invitations.id as id',
                 'invitations.slug',
                 'brides.name as bride',
                 'grooms.name as groom',
